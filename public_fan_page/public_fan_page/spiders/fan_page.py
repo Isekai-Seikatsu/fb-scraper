@@ -18,10 +18,11 @@ class FanPageSpider(scrapy.Spider):
         update_link: str = self.extract_link(response)
         self.logger.info('First request sent')
 
-        yield response.follow(update_link, callback=self.update_link_parse)
+        yield response.follow(update_link, callback=self.update_link_parse,
+                              cb_kwargs={'fan_page': response.url})
 
-    
-    def update_link_parse(self, response):
+
+    def update_link_parse(self, response, **kwargs):
 
         update: dict = json.loads(response.text[9:])
         assert (update['domops'][0][0] == 'replace'
@@ -37,10 +38,13 @@ class FanPageSpider(scrapy.Spider):
         # inspect_response(response, self)
         self.logger.info(f'------ segment ------')
         update_link: str = self.extract_link(sel)
-        yield response.follow(update_link, callback=self.update_link_parse)
 
+        headers = {
+            'Referer': kwargs['fan_page']
+        }
+        yield response.follow(update_link, callback=self.update_link_parse, headers=headers,
+                              cb_kwargs=kwargs)
 
-    
     @staticmethod
     def extract_link(selector) -> str:
         return (selector
