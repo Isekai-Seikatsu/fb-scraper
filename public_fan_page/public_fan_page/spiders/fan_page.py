@@ -43,6 +43,10 @@ class FanPageSpider(scrapy.Spider):
             'share_count': data['share_count']['count'],
             'comment_count': data['comment_count']['total_count'],
             'reaction_count': data['reaction_count']['count'],
+            'reactions': {
+                        reaction['node']['reaction_type'].lower(): reaction['reaction_count']
+                        for reaction in data['top_reactions']['edges']
+                    },
             'fbid': data['share_fbid']
         } for data in predisplay_items]
 
