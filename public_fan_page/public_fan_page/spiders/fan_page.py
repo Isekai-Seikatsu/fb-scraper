@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 from urllib.parse import urlparse
 
 import scrapy
@@ -11,7 +12,7 @@ class FanPageSpider(scrapy.Spider):
     start_urls = ['https://www.facebook.com/BAMBOOVIII/']
 
     def parse(self, response):
-        update_link: str = self.extract_link(response)
+        update_link = self.extract_link(response)
         self.logger.info('First request sent')
         yield response.follow(update_link, callback=self.update_link_parse,
                               cb_kwargs={'fan_page': response.url})
@@ -55,20 +56,20 @@ class FanPageSpider(scrapy.Spider):
         yield from agg_items.values()
 
         self.logger.info(f'------ segment ------')
-        update_link = sel.xpath(
-            '//*[@id="www_pages_reaction_see_more_unitwww_pages_home"]//@ajaxify').get()
-
+        update_link = self.extract_link(sel)
         if update_link:
-            update_link += '&__a=1'
             headers = {
                 'Referer': kwargs['fan_page']
             }
             yield response.follow(update_link, callback=self.update_link_parse, headers=headers,
                                   cb_kwargs=kwargs)
+        else:
+            self.logger.info('Scrape Done!')
 
     @staticmethod
-    def extract_link(selector) -> str:
-        return (selector
-                .xpath('//*[@id="www_pages_reaction_see_more_unitwww_pages_home"]//@ajaxify')
-                .get()
-                + '&__a=1')
+    def extract_link(selector: Selector) -> Optional[str]:
+        update_link = (selector
+                       .xpath('//*[@id="www_pages_reaction_see_more_unitwww_pages_home"]//@ajaxify')
+                       .get())
+        if update_link:
+            return update_link + '&__a=1'
