@@ -10,6 +10,11 @@ class FanPageSpider(scrapy.Spider):
     name = 'fan_page'
     allowed_domains = ['www.facebook.com']
     start_urls = ['https://www.facebook.com/BAMBOOVIII/']
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'public_fan_page.pipelines.MongoFanPagePipeline': 100
+        }
+    }
 
     def parse(self, response):
         update_link = self.extract_link(response)
