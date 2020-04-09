@@ -44,6 +44,7 @@ class FanPageSpider(scrapy.Spider):
                             if (item[0] == 'RelayPrefetchedStreamCache' and item[1] == 'next')]
 
         posts_info_from_predisplay = [{
+            'page_id': data['owning_profile']['id'],
             'url': data['url'],
             'share_count': data['share_count']['count'],
             'comment_count': data['comment_count']['total_count'],
