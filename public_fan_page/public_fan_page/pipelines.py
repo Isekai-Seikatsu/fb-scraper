@@ -22,9 +22,11 @@ class MongoPipelineABC(abc.ABC):
         self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client.get_default_database()
         try:
+            # Make sure that connection through URI is success
             self.client.admin.command('ismaster')
         except OperationFailure as opfail:
             self.logger.error(opfail)
+            raise opfail
         
     def close_spider(self, spider):
         self.client.close()
