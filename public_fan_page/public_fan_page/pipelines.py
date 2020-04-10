@@ -55,7 +55,7 @@ class MongoFanPagePipeline(MongoPipelineABC):
         hist_coll.post_reactions.update_one(
             {'post_id': post_id, 'date': utc_date},
             {
-                '$addToSet': {
+                '$push': {
                     'hist': hist_reactions_item
                 }
             },
