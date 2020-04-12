@@ -1,20 +1,30 @@
 import json
-from typing import Optional, List
+from typing import List, Optional
 from urllib.parse import urlparse
 
 import scrapy
+from pymongo import MongoClient
+from scrapy.http import Request
 from scrapy.selector import Selector
 
 
 class FanPageSpider(scrapy.Spider):
     name = 'fan_page'
     allowed_domains = ['www.facebook.com']
-    start_urls = ['https://www.facebook.com/BAMBOOVIII/posts/']
+    
     custom_settings = {
         'ITEM_PIPELINES': {
             'public_fan_page.pipelines.MongoFanPagePipeline': 100
         }
     }
+
+    def start_requests(self):
+        client = MongoClient(self.settings.get('MONGO_URI'))
+        db = client.get_default_database()
+        cursor = db.fan_page.find(projection={'_id': 0})
+        for page in cursor:
+            yield Request(f"{page['link']}posts/")
+        client.close()
 
     def parse(self, response):
         result: List[str] = response.css('script').re(
