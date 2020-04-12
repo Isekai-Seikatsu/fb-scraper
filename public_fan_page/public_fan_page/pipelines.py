@@ -2,7 +2,9 @@ import abc
 import datetime
 
 import pymongo
+import pytz
 from pymongo.errors import OperationFailure
+from pymongo.results import UpdateResult
 
 
 class PublicFanPagePipeline(object):
@@ -52,7 +54,7 @@ class MongoFanPagePipeline(MongoPipelineABC):
                                             for k, v in item['reactions'].items()]
 
         hist_coll = self.db.history
-        hist_coll.post_reactions.update_one(
+        result: UpdateResult = hist_coll.post_reactions.update_one(
             {'post_id': post_id, 'date': utc_date},
             {
                 '$push': {
@@ -61,4 +63,47 @@ class MongoFanPagePipeline(MongoPipelineABC):
             },
             upsert=True
         )
+        spider.logger.info(result.raw_result)
+
+        posted_time = (datetime.datetime
+                       .fromtimestamp(int(item['posted_time']))
+                       .astimezone(pytz.timezone(spider.settings.get('TIMEZONE'))))
+
+        resp = self.db.post.find_one_and_update(
+            {
+                'post_id': post_id,
+                'page_id': int(item['page_id']),
+                'url': item['url'],
+                'url_path': item['url_path'],
+                'posted_time': posted_time
+            },
+            {
+                '$set': {
+                    'msg': item['msg'],
+                    'fetched_time': utc_now
+                }
+            },
+            projection={'msg': True, 'fetched_time': True, '_id': False},
+            upsert=True
+        )
+
+        if resp is None:
+            spider.logger.info('Post upsert happend')
+        else:
+            if resp['msg'] != item['msg']:
+                # update msg history
+                result: UpdateResult = hist_coll.post_msg.update_one(
+                    {'post_id': post_id},
+                    {
+                        '$push': {
+                            'hist': {
+                                'fetched_time': resp.get('fetched_time'),
+                                'msg': resp.get('msg')
+                            }
+                        }
+                    },
+                    upsert=True
+                )
+                spider.logger.info(result.raw_result)
+
         return item
