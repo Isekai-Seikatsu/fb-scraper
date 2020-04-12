@@ -8,7 +8,7 @@ from scrapy.utils.project import get_project_settings
 
 def run_crawl():
     deferred = runner.crawl(FanPageSpider)
-    deferred.addCallback(lambda _: reactor.callLater(5, run_crawl))
+    deferred.addCallback(lambda _: reactor.callLater(60, run_crawl))
     return deferred
 
 runner = CrawlerRunner(get_project_settings())
