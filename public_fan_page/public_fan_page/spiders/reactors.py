@@ -9,7 +9,6 @@ from scrapy.http import Request
 class ReactorsSpider(scrapy.Spider):
     name = 'reactors'
     allowed_domains = ['m.facebook.com']
-    handle_httpstatus_list = [400]
 
     start_urls = ['1741331419254052']
     REACTION_TYPE_MAPPING = {'1': 'like', '2': 'love',
@@ -44,24 +43,7 @@ class ReactorsSpider(scrapy.Spider):
                 )
 
     def reactor_parse(self, response, reaction_type, post_id):
-        if response.status == 400:
-            pr = urlparse(response.url)
-            d = parse_qs(pr.query)
-            origin_limit = int(d['limit'][0])
-            if origin_limit - 100 > 0:
-                d['limit'] = [str(origin_limit - 100)]
-                query = urlencode(d, doseq=True)
-                retry_url = pr._replace(query=query).geturl()
-                yield response.follow(
-                    retry_url, callback=self.reactor_parse,
-                    cb_kwargs={
-                        'reaction_type': reaction_type,
-                        'post_id': post_id
-                    }
-                )
-            else:
-                return
-
+        
         main_block = response.xpath('//ul/li/table/tbody/tr/td')
 
         for reactor_block in main_block.xpath('table/tbody/tr'):
