@@ -43,16 +43,20 @@ class ReactorsSpider(scrapy.Spider):
                 )
 
     def reactor_parse(self, response, reaction_type, post_id):
-        
+
         main_block = response.xpath('//ul/li/table/tbody/tr/td')
+
+        item = {
+            'post_id': post_id,
+            'reaction_type': reaction_type,
+            'reactors': []
+        }
 
         for reactor_block in main_block.xpath('table/tbody/tr'):
             tds = reactor_block.xpath('td')
             profile_link = tds.xpath('div/h3/a/@href')
 
             reactor = {
-                'post_id': post_id,
-                'reaction_type': reaction_type,
                 'profile_link': profile_link.get(),
                 'name': tds.xpath('div/h3/a/text()').get(),
             }
@@ -68,7 +72,10 @@ class ReactorsSpider(scrapy.Spider):
                 if uid:
                     reactor['uid'] = uid[0]
 
-            yield reactor
+            item['reactors'].append(reactor)
+        
+        if item['reactors']:
+            yield item
 
         next_link = main_block.xpath('div/a/@href').get()
         if next_link:
