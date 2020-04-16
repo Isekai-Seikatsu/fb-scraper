@@ -94,3 +94,4 @@ AUTOTHROTTLE_ENABLED = True
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 MONGO_URI = os.getenv('SCRAPY_SETTING_MONGO_URI')
 TIMEZONE = os.getenv('MACHINE_TIMEZONE')
+SECRET_FB_COOKIES = os.getenv('SECRET_FB_COOKIES')

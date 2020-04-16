@@ -3,7 +3,7 @@ import datetime
 
 import pymongo
 import pytz
-from pymongo.errors import OperationFailure
+from pymongo.errors import OperationFailure, DuplicateKeyError
 from pymongo.results import UpdateResult
 
 
@@ -105,5 +105,40 @@ class MongoFanPagePipeline(MongoPipelineABC):
                     upsert=True
                 )
                 spider.logger.info(result.raw_result)
+
+        return item
+
+
+class MongoPostReactorsPipeline(MongoPipelineABC):
+    def process_item(self, item, spider):
+        try:
+            ids = [
+                self.db.fb_user.find_one_and_update(
+                    doc,
+                    {'$currentDate': {'update_time': True}},
+                    projection={'_id': 1},
+                    return_document=True,
+                    upsert=True
+                )['_id'] for doc in item['reactors']]
+        except TypeError:
+            spider.logger.error(f'[None err] item: {item}')
+
+        update_result = self.db.history.post_reactors.update_one(
+            {'post_id': item['post_id'], 'date': item['start_date']},
+            {
+                '$push': {
+                    'hist.$[histElem].reactors.$[reactor].uids': {
+                        '$each': ids
+                    }
+                },
+                '$currentDate': {
+                    'hist.$[histElem].fetched_time.end': True
+                }
+            },
+            array_filters=[{'histElem.fetched_time.start': item['start_time']},
+                           {'reactor.type': item['reaction_type']}]
+        )
+
+        assert update_result.modified_count > 0, "uids not stored into history reactors"
 
         return item
