@@ -111,17 +111,15 @@ class MongoFanPagePipeline(MongoPipelineABC):
 
 class MongoPostReactorsPipeline(MongoPipelineABC):
     def process_item(self, item, spider):
-        try:
-            ids = [
-                self.db.fb_user.find_one_and_update(
-                    doc,
-                    {'$currentDate': {'update_time': True}},
-                    projection={'_id': 1},
-                    return_document=True,
-                    upsert=True
-                )['_id'] for doc in item['reactors']]
-        except TypeError:
-            spider.logger.error(f'[None err] item: {item}')
+
+        ids = [
+            self.db.fb_user.find_one_and_update(
+                doc,
+                {'$currentDate': {'update_time': True}},
+                projection={'_id': 1},
+                return_document=True,
+                upsert=True
+            )['_id'] for doc in item['reactors']]
 
         update_result = self.db.history.post_reactors.update_one(
             {'post_id': item['post_id'], 'date': item['start_date']},
