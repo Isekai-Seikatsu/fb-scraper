@@ -1,3 +1,5 @@
+from functools import partial
+
 import scrapy
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
@@ -12,7 +14,7 @@ def run_crawl(spider, interval=60):
     deferred = runner.crawl(spider)
     deferred.addCallback(
         lambda _: reactor.callLater(
-            interval, lambda _: run_crawl(spider, interval))
+            interval, partial(run_crawl, spider, interval))
     )
     return deferred
 
