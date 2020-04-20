@@ -95,3 +95,5 @@ AUTOTHROTTLE_ENABLED = True
 MONGO_URI = os.getenv('MONGO_URI')
 TIMEZONE = os.getenv('MACHINE_TIMEZONE')
 SECRET_FB_COOKIES = os.getenv('SECRET_FB_COOKIES')
+
+TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
