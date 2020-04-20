@@ -109,18 +109,19 @@ class MongoFanPagePipeline(MongoPipelineABC):
 
 
 class MongoPostReactorsPipeline(MongoPipelineABC):
-    def process_item(self, item, spider):
-
-        ids = [
-            self.db.fb_user.find_one_and_update(
+    async def process_item(self, item, spider):
+        ids_cos = [
+            self.db.fb_user_test.find_one_and_update(
                 doc,
                 {'$currentDate': {'update_time': True}},
                 projection={'_id': 1},
                 return_document=True,
                 upsert=True
-            )['_id'] for doc in item['reactors']]
+            ) for doc in item['reactors']]
 
-        update_result = self.db.history.post_reactors.update_one(
+        ids = [doc['_id'] for doc in await asyncio.gather(*ids_cos)]
+
+        update_result = await self.db.history_test.post_reactors.update_one(
             {'post_id': item['post_id'], 'date': item['start_date']},
             {
                 '$push': {
