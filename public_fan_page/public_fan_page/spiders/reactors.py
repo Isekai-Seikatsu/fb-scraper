@@ -18,7 +18,7 @@ class ReactorsSpider(scrapy.Spider):
     custom_settings = {
         'URLLENGTH_LIMIT': 131072,
         'ITEM_PIPELINES': {
-            'public_fan_page.pipelines.MongoPostReactorsPipeline': 100
+            'public_fan_page.async_pipelines.MongoPostReactorsPipeline': 100
         }
     }
 
@@ -27,7 +27,7 @@ class ReactorsSpider(scrapy.Spider):
         self.db = self.client.get_default_database()
 
         secret_cookies = json.loads(self.settings.get('SECRET_FB_COOKIES'))
-        for post in self.db.post.find(projection={'post_id': 1, '_id': 0}):
+        for post in self.db.post_test.find(projection={'post_id': 1, '_id': 0}):
             post_id = post['post_id']
             yield Request(
                 f'https://m.facebook.com/ufi/reaction/profile/browser/?ft_ent_identifier={post_id}',
@@ -42,7 +42,7 @@ class ReactorsSpider(scrapy.Spider):
         start_date = datetime.datetime.combine(start_time, datetime.time())
 
         reaction_types = list(self.get_reaction_types(urls))
-        self.db.history.post_reactors.update_one(
+        self.db.history_test.post_reactors.update_one(
             {'post_id': post_id, 'date': start_date},
             {
                 '$push': {
