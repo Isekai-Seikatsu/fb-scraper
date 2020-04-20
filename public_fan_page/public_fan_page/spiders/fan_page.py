@@ -14,7 +14,7 @@ class FanPageSpider(scrapy.Spider):
     
     custom_settings = {
         'ITEM_PIPELINES': {
-            'public_fan_page.pipelines.MongoFanPagePipeline': 100
+            'public_fan_page.async_pipelines.MongoFanPagePipeline': 100
         }
     }
 
