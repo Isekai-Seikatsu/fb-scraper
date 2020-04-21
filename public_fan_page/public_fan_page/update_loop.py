@@ -18,7 +18,6 @@ async def update_fan_page_from_fb_user():
         }
     )
 
-    # TODO create_task
     futures = [
         db.fan_page.update_one(
             {'page_id': user['uid']},
