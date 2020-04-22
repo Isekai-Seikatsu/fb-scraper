@@ -4,7 +4,7 @@ import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 
-client = AsyncIOMotorClient(os.getenv('SCRAPY_SETTING_MONGO_URI'))
+client = AsyncIOMotorClient(os.getenv('MONGO_URI'))
 db = client.get_default_database()
 
 
