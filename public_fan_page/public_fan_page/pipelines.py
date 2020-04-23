@@ -142,3 +142,20 @@ class MongoPostReactorsPipeline(MongoPipelineABC):
         assert update_result.modified_count > 0, "uids not stored into history reactors"
 
         return item
+
+class MongoFBUserUidPipeline(MongoPipelineABC):
+    async def process_item(self, item, spider):
+
+        result = await self.db.fb_user.update_one(
+            {'_id': item['_id']},
+            {
+                '$set': {
+                    'uid': item['uid']
+                },
+                '$currentDate': {
+                    'update_time': True
+                }
+            }
+        )
+        spider.logger.info(result.raw_result)
+        return item
