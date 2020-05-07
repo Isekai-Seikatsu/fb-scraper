@@ -12,6 +12,7 @@ scrapy = "*"
 pymongo = "*"
 pytz = "*"
 motor = "*"
+fastapi = {extras = ["all"],version = "*"}
 
 [requires]
 python_version = "3.7"
