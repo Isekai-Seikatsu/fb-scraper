@@ -12,12 +12,6 @@ db = client.get_default_database()
 app = FastAPI(on_shutdown=[lambda: client.close()])
 
 
-class Post(BaseModel):
-    page_id: int
-    posted_time: datetime
-    msg: str
-
-
 class Page(BaseModel):
     page_id: int
     link: str
@@ -34,9 +28,23 @@ async def list_page():
     return [Page(**page) async for page in cursor]
 
 
-@app.get("/page/{page_id}")
-async def read_item(page_id: int, limit: int = 10):
-    cursor = db.post.find({"page_id": page_id})
+@app.get("/page/{page_id}/posts")
+async def get_posts(page_id: int, limit: int = 10):
+    cursor = db.post.find({"page_id": page_id},
+                          projection={'_id': 0, 'url_path': 0, 'page_id': 0})
     if limit:
         cursor = cursor.limit(limit)
-    return [Post(**post) async for post in cursor]
+    return [post async for post in cursor]
+
+
+@app.get("/post/{post_id}/reactions")
+async def get_reactions(post_id: int, limit: int = 1):
+    if limit > 10:
+        limit = 10
+    cursor = db.history.post_reactions.aggregate([
+        {'$match': {'post_id': post_id}},
+        {'$sort': {'date': -1}},
+        {'$project': {'_id': 0}},
+        {'$limit': limit},
+    ])
+    return [doc async for doc in cursor]
