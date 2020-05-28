@@ -19,3 +19,4 @@ python_version = "3.7"
 
 [scripts]
 api-server = "uvicorn api.main:app --loop=uvloop --host=0.0.0.0 --port=8080"
+api-server-cf-ssl = "uvicorn api.main:app --loop=uvloop --host=0.0.0.0 --ssl-keyfile=./key.pem --ssl-certfile=./cert.pem --port=8443"
