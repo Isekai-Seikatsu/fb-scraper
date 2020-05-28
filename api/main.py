@@ -28,15 +28,15 @@ def read_root():
     return RedirectResponse("/docs")
 
 
+@app.get("/pages")
+async def list_page():
+    cursor = db.fan_page.find(projection={"_id": 0})
+    return [Page(**page) async for page in cursor]
+
+
 @app.get("/page/{page_id}")
 async def read_item(page_id: int, limit: int = 10):
     cursor = db.post.find({"page_id": page_id})
     if limit:
         cursor = cursor.limit(limit)
     return [Post(**post) async for post in cursor]
-
-
-@app.get("/pagelist")
-async def list_page():
-    cursor = db.fan_page.find(projection={"_id": 0})
-    return [Page(**page) async for page in cursor]
